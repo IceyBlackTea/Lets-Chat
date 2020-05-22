@@ -31,7 +31,6 @@ class defaultLine(QLineEdit):
         self.setAttribute(Qt.WA_MacShowFocusRect, 0)
         self.setStyleSheet("QLineEdit{border-radius:10px; padding:2px 2px}")
 
-# 登陆界面
 class mainWidgets(QWidget):
     signal = pyqtSignal([int, dict])
     historyNum = 0
