@@ -12,7 +12,6 @@ from datetime import datetime
 from time import time, sleep
 import threading
 import re
-import random
 import json
 
 class defaultButton(QPushButton):
@@ -54,7 +53,6 @@ class mainWidgets(QWidget):
         self.label1.setGeometry(35, 30, 60, 16)
 
         self.remoteIPLine = defaultLine(self)
-        self.remoteIPLine.setText('127.0.0.1')
         self.remoteIPLine.setGeometry(105, 28, 120, 20)
         
         self.label2 = QLabel(self)
@@ -95,7 +93,6 @@ class mainWidgets(QWidget):
         self.label4.setGeometry(249, 65, 80, 16)
 
         self.localPortLine = defaultLine(self)
-        self.localPortLine.setText(str(random.randint(1025, 65535)))
         self.localPortLine.setGeometry(325, 63, 60, 20)
 
         self.tcpBt = QRadioButton(self)
@@ -286,6 +283,8 @@ class mainWidgets(QWidget):
                         break
                     else:
                         self.tcpLabel.setText('success')
+                        self.remoteIPLine.setText(address[0])
+                        self.remotePortLine.setText(str(address[1]))
                         t = threading.Thread(target=self.tcp_recv, args=(self.connection,))
                         t.start()
 
@@ -299,6 +298,7 @@ class mainWidgets(QWidget):
                 self.signal[int, dict].emit(1, {})
                 return
             else:
+                self.localPortLine.setText(str(self.connection.getsockname()[1]))
                 self.signal[int, dict].emit(4, {})
                 t = threading.Thread(target=self.tcp_recv, args=(self.connection,))
                 t.start()
@@ -311,6 +311,7 @@ class mainWidgets(QWidget):
                     dic = json.loads(data.decode('utf-8'))
                 except:
                     print('tcp server get data which is not json format!')
+                    break
                 else:
                     history = threading.Thread(target=self.signal_recvMsg, args=(dic,))
                     history.start()   
@@ -318,7 +319,8 @@ class mainWidgets(QWidget):
                 print('the connection is close!')
                 break
 
-        connection.close()
+        if connection != None:
+            connection.close()
 
     def signal_recvMsg(self, dic):
         self.signal[int, dict].emit(2, dic)
@@ -363,6 +365,8 @@ class mainWidgets(QWidget):
             self.tcpLabel.setVisible(False)
             self.tcpBindBt.setVisible(True)
             self.connectBt.setVisible(True)
+            self.remoteIPLine.setText('')
+            self.remotePortLine.setText('')
 
     def slot_send(self):
         player = self.playerLine.text()
@@ -424,6 +428,7 @@ class mainWidgets(QWidget):
     def slot_signalHandler(self, type, dic):
         if type == 1:
             QMessageBox.warning(self, 'Error', 'setup a ' + self.type +' server failed!')
+            
         elif type == 2:
             player = dic['player']
             time_ = dic['time']
@@ -483,6 +488,8 @@ class mainWidgets(QWidget):
             self.tcpLabel.setVisible(False)
             self.tcpBindBt.setVisible(True)
             self.connectBt.setVisible(True)
+            self.remoteIPLine.setText('')
+            self.remotePortLine.setText('')
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
